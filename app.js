@@ -65,7 +65,7 @@ function sendQuery(term, res) {
                     let random = images[Math.floor(Math.random()*(images.length-1))];
                     if (random) {
                         res.send({
-                            response_type: 'ephemeral',
+                            response_type: 'in_channel',
                             attachments: [{
                                 fallback: 'Valgif',
                                 image_url: random.src,
@@ -94,7 +94,7 @@ app.post('/command', (req, res) => {
             text: 'Invalid query.'
         });
     } else {
-        sendQuery(req.query.q, res);
+        sendQuery(req.body.text, res);
     }
 });
 
