@@ -65,15 +65,40 @@ function sendQuery(term, res) {
                     let random = images[Math.floor(Math.random()*(images.length-1))];
                     if (random) {
                         res.send({
-                            response_type: 'in_channel',
+                            response_type: 'ephemeral',
+                            replace_original: true,
                             attachments: [{
+                                callback_id: 'gif',
                                 fallback: 'Valgif',
                                 image_url: random.src,
                                 title_link: random.href,
+                                actions: [
+                                    {
+                                        name: 'option',
+                                        text: 'Send',
+                                        type: 'button',
+                                        value: 'send-' + JSON.stringify(random),
+                                        style: 'primary'
+                                    },
+                                    {
+                                        name: 'option',
+                                        text: 'Shuffle',
+                                        type: 'button',
+                                        value: 'shuffle-' + term
+                                    },
+                                    {
+                                        name: 'option',
+                                        text: 'Cancel',
+                                        type: 'button',
+                                        value: 'cancel',
+                                        style: 'danger'
+                                    }
+                                ]
                             }]
                         });
                     } else {
                         res.send({
+                            delete_original: true,
                             response_type: 'ephemeral',
                             text: 'Failed to get an image.'
                         });
@@ -90,11 +115,46 @@ function sendQuery(term, res) {
 app.post('/command', (req, res) => {
     if (!req.body || !req.body.text) {
         res.send({
+            delete_original: true,
             response_type: 'ephemeral',
             text: 'Invalid query.'
         });
     } else {
         sendQuery(req.body.text, res);
+    }
+});
+
+app.post('/interactive', (req, res) => {
+    if (req.body && req.body.payload && req.body.payload) {
+        let payload = JSON.parse(req.body.payload);
+        let action = payload.actions[0];
+        console.log('payload', payload);
+        console.log('action!', action);
+        if (action.value.startsWith('send-')) {
+            let newVal = action.value.replace('send-', '');
+            let imageData = JSON.parse(newVal);
+            res.send({
+                response_type: 'in_channel',
+                as_user: true,
+                delete_original: true,
+                attachments: [{
+                    callback_id: 'gif',
+                    fallback: 'Valgif',
+                    image_url: imageData.src,
+                    title_link: imageData.href
+                }]
+            });
+        } else if (action.value.startsWith('shuffle-')) {
+            sendQuery(action.value.replace('shuffle-', ''), res);
+        } else {
+            res.send({
+                delete_original: true
+            });
+        }
+    } else {
+        res.send({
+            delete_original: true
+        });
     }
 });
 
