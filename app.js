@@ -22,6 +22,11 @@ const https = require('https');
 const htmlparser = require('htmlparser');
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
 function sendQuery(term, res) {
     https.get({
@@ -82,11 +87,11 @@ function sendQuery(term, res) {
     });
 }
 
-app.get('/gif', (req, res, next) => {
-    if (!req.query.q) {
+app.post('/command', (req, res) => {
+    if (!req.body || !req.body.text) {
         res.send({
             response_type: 'ephemeral',
-            text: 'Invalid query parameter.'
+            text: 'Invalid query.'
         });
     } else {
         sendQuery(req.query.q, res);
