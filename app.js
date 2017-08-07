@@ -64,6 +64,7 @@ function sendQuery(term, res) {
 
                     let random = images[Math.floor(Math.random()*(images.length-1))];
                     if (random) {
+                        random.term = term;
                         res.send({
                             response_type: 'ephemeral',
                             replace_original: true,
@@ -128,8 +129,6 @@ app.post('/interactive', (req, res) => {
     if (req.body && req.body.payload && req.body.payload) {
         let payload = JSON.parse(req.body.payload);
         let action = payload.actions[0];
-        console.log('payload', payload);
-        console.log('action!', action);
         if (action.value.startsWith('send-')) {
             let newVal = action.value.replace('send-', '');
             let imageData = JSON.parse(newVal);
@@ -137,6 +136,7 @@ app.post('/interactive', (req, res) => {
                 response_type: 'in_channel',
                 as_user: true,
                 delete_original: true,
+                text: '*' + imageData.term + '* - posted by *' + payload.user.name + '*',
                 attachments: [{
                     callback_id: 'gif',
                     fallback: 'Valgif',
